@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-deployment
+  namespace: node-express-application
+spec:
+  selector:
+    app: node-app-deployment
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app-deployment
+  namespace: node-express-application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-app-deployment
+  template:
+    metadata:
+      labels:
+        app: node-app-deployment
+    spec:
+      containers:
+        - name: node-app-deployment
+          image: likhith045/node-app:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGODB_URL
+              value: "mongodb://mongodb-deployment:27017/node-boilerplate"
+          

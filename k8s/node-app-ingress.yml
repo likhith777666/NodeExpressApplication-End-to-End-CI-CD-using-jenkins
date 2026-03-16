@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: node-app-ingress
+  namespace: node-express-application
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: node-app-ingree.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: node-app-deployment
+                port:
+                  number: 3000
