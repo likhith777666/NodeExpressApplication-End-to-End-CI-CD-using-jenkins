@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE = "likhith045/node-app"
+    }
+
+    stages {
+        
+         stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('Clone Code') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/likhith777666/NodeExpressApplication-End-to-End-CI-CD-using-jenkins.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                docker build -t $IMAGE:$BUILD_NUMBER .
+                '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'bb61b398-9070-4c32-b7c6-6ac8b1d9776b',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh '''
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $IMAGE:$BUILD_NUMBER
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                export KUBECONFIG=/var/jenkins_home/kubeconfig
+                kubectl apply -f k8s/
+                '''
+            }
+        }
+
+        stage('Update Deployment Image') {
+            steps {
+                sh '''
+                export KUBECONFIG=/var/jenkins_home/kubeconfig
+                kubectl set image deployment/node-app-deployment \
+                node-app-deployment=$IMAGE:$BUILD_NUMBER \
+                -n node-express-application
+                '''
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline executed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+    }
+}
